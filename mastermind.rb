@@ -10,11 +10,10 @@ module Mastermind
   end
 
   class Game
-    attr_reader :computer, :human, :color_choices  
+    attr_accessor :computer, :human, :color_choices  
 
     def initialize
       play_game
-      compare_with_index
     end
 
     def play_game
@@ -22,9 +21,9 @@ module Mastermind
       welcome
       instructions
       @human = Player.new(get_human_choice)
-      compare_with_index
+      compare_flow
       @guess_iterations = 1
-      guesses
+      guess
     end
 
     def welcome
@@ -49,19 +48,40 @@ module Mastermind
     def get_human_choice
       answer = gets.chomp.upcase
       human_colors = answer.split(",")
-      p human_colors
-    end
-
-    def guesses
-      while @guess_iterations <= 12
-        compare_with_index
-        @guess_iterations += 1
-      end
     end
 
     def compare_with_index
-     matches = computer.color_choices.zip(human.color_choices).map {|x, y| x == y}
-      p matches
+      matches = computer.color_choices.zip(human.color_choices).map {|x, y| x == y}
+      matches.count(true)
+    end
+
+    def matches_with_index
+      puts "You have #{compare_with_index} correct color(s) in the correct spot."
+    end
+
+    def compare_flow
+      compare_with_index
+      matches_with_index
+    end
+
+    def victory
+      if compare_with_index == 4
+        puts "You've won!"
+        true
+      end
+    end
+
+    def guess_again_message
+        puts "Guess again, please choose four colors, separated by a comma (ex: B,O,Y,G)"
+    end
+
+    def guess
+      while @guess_iterations <= 12 && !victory
+        guess_again_message
+        human.color_choices = get_human_choice
+        compare_flow
+        @guess_iterations += 1
+      end
     end
 
   end
