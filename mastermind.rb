@@ -10,7 +10,7 @@ module Mastermind
   end
 
   class Game
-    attr_accessor :computer, :human, :color_choices  
+    attr_accessor :computer, :human, :color_choices
 
     def initialize
       play_game
@@ -21,8 +21,10 @@ module Mastermind
       welcome
       instructions
       @human = Player.new(get_human_choice)
-      compare_flow
-      @guess_iterations = 1
+      compare_with_index
+      @@guess_iterations = 1
+      @@guesses_hash = Hash.new
+      store_guess_with_message
       guess
     end
 
@@ -51,17 +53,28 @@ module Mastermind
     end
 
     def compare_with_index
-      matches = computer.color_choices.zip(human.color_choices).map {|x, y| x == y}
-      matches.count(true)
+      @count_index = 0
+      @color_count = 0
+      computer.color_choices.each_with_index do |n, index|
+        if human.color_choices[index] == n
+          @count_index += 1  
+        elsif human.color_choices.include?(n)
+          @color_count += 1
+        end
+      end
+      @count_index
     end
 
-    def matches_with_index
-      puts "You have #{compare_with_index} correct color(s) in the correct spot."
+    def matches_message
+      "You have #{@count_index} color(s) in the right spot and #{@color_count} correctly chosen color(s)"
     end
 
-    def compare_flow
-      compare_with_index
-      matches_with_index
+    def store_guess_with_message
+      @@guesses_hash[human.color_choices] = matches_message
+    end
+
+    def board
+      Board.new
     end
 
     def victory
@@ -76,19 +89,39 @@ module Mastermind
     end
 
     def guess
-      while @guess_iterations <= 12 && !victory
+      while @@guess_iterations < 12 && !victory
+        store_guess_with_message
+        board
+        puts matches_message
         guess_again_message
         human.color_choices = get_human_choice
-        compare_flow
-        @guess_iterations += 1
+        compare_with_index
+        @@guess_iterations += 1
       end
+      puts "Game Over"
     end
 
   end
 
-  class Board
+  class Board < Game
 
     def initialize
+      render_board
+    end
+
+    def render_board
+      (12- @@guess_iterations.to_i).times do 
+        puts "| X | X | X | X |"
+      end
+      display_hash
+    end
+
+    def display_hash
+      @@guesses_hash.each do |k,v|
+        puts "================="
+        puts "| " + k.join(" | ") + " | " + v
+        puts "================="
+      end
     end
 
   end
