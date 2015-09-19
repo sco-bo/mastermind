@@ -1,3 +1,4 @@
+
 module Mastermind
   
   class Player
@@ -13,35 +14,47 @@ module Mastermind
     attr_accessor :computer, :human, :color_choices
 
     def initialize
-      play_game
+      welcome
     end
 
     def play_game
       @computer = Player.new(get_random_choice)
-      welcome
-      instructions
+      human_instructions
+      choose_message
       @human = Player.new(get_human_choice)
       compare_with_index
       @@guess_iterations = 1
       @@guesses_hash = Hash.new
-      store_guess_with_message
-      guess
+      store_guess_human
+      guess_loop_human
+    end
+
+    def comp_guesses
+      choose_message
+      @human = Player.new(get_human_choice)
+      @computer = Player.new(get_random_choice)
+      compare_with_index
+      @@guess_iterations = 1
+      @@guesses_hash = Hash.new
+      store_guess_comp
+      guess_loop_comp
     end
 
     def welcome
-      puts "Welcome to Mastermind. The computer is now choosing its colors..."
+      puts "Welcome to Mastermind."
       puts "========================================================"
+      who_creates_code
     end
 
-    def instructions
+    def human_instructions
       puts "You will be given 12 chances to guess the code that was chosen by the computer."
       puts "========================================================"
       puts "There are 6 colors from which to choose (Red, Blue, Green, Yellow, Orange, Purple)"
       puts "========================================================"
-      puts "Please choose four colors, separated by a comma (ex: B,O,Y,G)"
     end
 
     def get_random_choice
+      puts "The computer is now choosing..."
       colors = ["R", "B", "G", "Y", "O", "P"]
       choice = colors.sample(4)
       p choice
@@ -50,6 +63,20 @@ module Mastermind
     def get_human_choice
       answer = gets.chomp.upcase
       human_colors = answer.split(",")
+    end
+
+    def who_creates_code
+      puts "Would you like to choose the code and have the computer guess? (yes/no)"
+      chooser = gets.chomp.downcase
+      if chooser == "yes"
+        comp_guesses
+      else
+        play_game
+      end
+    end
+
+    def choose_message
+      puts "Please choose four colors, separated by a comma (ex: B,O,Y,G)"  
     end
 
     def compare_with_index
@@ -69,8 +96,12 @@ module Mastermind
       "You have #{@count_index} color(s) in the right spot and #{@color_count} correctly chosen color(s)"
     end
 
-    def store_guess_with_message
+    def store_guess_human
       @@guesses_hash[human.color_choices] = matches_message
+    end
+
+    def store_guess_comp
+      @@guesses_hash[computer.color_choices] = matches_message
     end
 
     def board
@@ -79,7 +110,7 @@ module Mastermind
 
     def victory
       if compare_with_index == 4
-        puts "You've won!"
+        puts "Victory!"
         true
       end
     end
@@ -88,9 +119,21 @@ module Mastermind
         puts "Guess again, please choose four colors, separated by a comma (ex: B,O,Y,G)"
     end
 
-    def guess
+    def guess_loop_comp
       while @@guess_iterations < 12 && !victory
-        store_guess_with_message
+        store_guess_comp
+        board
+        puts matches_message
+        computer.color_choices = get_random_choice
+        compare_with_index
+        @@guess_iterations += 1
+      end
+      game_over
+    end
+
+    def guess_loop_human
+      while @@guess_iterations < 12 && !victory
+        store_guess_human
         board
         puts matches_message
         guess_again_message
@@ -98,9 +141,14 @@ module Mastermind
         compare_with_index
         @@guess_iterations += 1
       end
-      puts "Game Over"
+      game_over
     end
 
+    def game_over
+      if @@guess_iterations >= 12
+        puts "Game Over"
+      end
+    end
   end
 
   class Board < Game
