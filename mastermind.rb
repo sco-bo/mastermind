@@ -25,7 +25,6 @@ module Mastermind
       compare_with_index
       @@guess_iterations = 1
       @@guesses_hash = Hash.new
-      store_guess_human
       guess_loop_human
     end
 
@@ -36,7 +35,6 @@ module Mastermind
       compare_with_index
       @@guess_iterations = 1
       @@guesses_hash = Hash.new
-      store_guess_comp
       guess_loop_comp
     end
 
@@ -57,7 +55,20 @@ module Mastermind
       puts "The computer is now choosing..."
       colors = ["R", "B", "G", "Y", "O", "P"]
       choice = colors.sample(4)
-      p choice
+      choice
+    end
+
+    def new_choice
+      colors = ["R", "B", "G", "Y", "O", "P"]
+      new_color = []
+      computer.color_choices.each_with_index do |n, index|
+        if human.color_choices[index] != n
+          new_color[index] = colors.sample
+        else
+          new_color[index] = n
+        end
+      end
+      new_color
     end
 
     def get_human_choice
@@ -84,7 +95,7 @@ module Mastermind
       @color_count = 0
       computer.color_choices.each_with_index do |n, index|
         if human.color_choices[index] == n
-          @count_index += 1  
+          @count_index += 1
         elsif human.color_choices.include?(n)
           @color_count += 1
         end
@@ -124,7 +135,7 @@ module Mastermind
         store_guess_comp
         board
         puts matches_message
-        computer.color_choices = get_random_choice
+        computer.color_choices = new_choice
         compare_with_index
         @@guess_iterations += 1
       end
